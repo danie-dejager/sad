@@ -23,8 +23,6 @@ use {
 
 #[cfg(target_family = "unix")]
 use std::os::unix::ffi::OsStringExt;
-#[cfg(target_family = "windows")]
-use std::os::windows::ffi::OsStringExt;
 
 #[derive(Debug)]
 pub enum RowIn {
@@ -133,20 +131,16 @@ async fn stream_patch(patches: &Path) -> impl Stream<Item = Result<RowIn, Die>> 
   Either::Right(stream.try_filter_map(|x| ready(Ok(x))))
 }
 
-fn u8_pathbuf(v8: Vec<u8>) -> PathBuf {
+#[allow(clippy::unnecessary_wraps)]
+fn u8_pathbuf(v8: Vec<u8>) -> Option<PathBuf> {
   #[cfg(target_family = "unix")]
   {
-    PathBuf::from(OsString::from_vec(v8))
+    Some(PathBuf::from(OsString::from_vec(v8)))
   }
   #[cfg(target_family = "windows")]
   {
-    let mut buf = Vec::new();
-    for chunk in v8.chunks_exact(2) {
-      let c: [u8; 2] = chunk.try_into().expect("exact chunks");
-      let b = u16::from_ne_bytes(c);
-      buf.push(b)
-    }
-    PathBuf::from(OsString::from_wide(&buf))
+    let buf = String::from_utf8(v8).ok()?;
+    Some(PathBuf::from(OsString::from(buf)))
   }
 }
 
@@ -168,17 +162,20 @@ fn stream_stdin(use_nul: bool) -> impl Stream<Item = Result<RowIn, Die>> {
     match next {
       None => Ok(None),
       Some(buf) => {
-        let path = u8_pathbuf(buf);
-        match canonicalize(&path).await {
-          Err(e) if e.kind() == ErrorKind::NotFound => Ok(Some((None, s))),
-          Err(e) => Err(Die::IO(path, e.kind())),
-          Ok(canonical) => Ok(Some({
-            if s.1.insert(canonical.clone()) {
-              (Some(RowIn::Entire(canonical)), s)
-            } else {
-              (None, s)
-            }
-          })),
+        if let Some(path) = u8_pathbuf(buf) {
+          match canonicalize(&path).await {
+            Err(e) if e.kind() == ErrorKind::NotFound => Ok(Some((None, s))),
+            Err(e) => Err(Die::IO(path, e.kind())),
+            Ok(canonical) => Ok(Some({
+              if s.1.insert(canonical.clone()) {
+                (Some(RowIn::Entire(canonical)), s)
+              } else {
+                (None, s)
+              }
+            })),
+          }
+        } else {
+          Ok(Some((None, s)))
         }
       }
     }
