@@ -11,6 +11,9 @@ use {
   },
 };
 
+#[cfg(target_family = "unix")]
+use std::os::unix::ffi::OsStrExt;
+
 #[derive(Clone, Debug)]
 pub struct SubprocCommand {
   pub prog: PathBuf,
@@ -40,6 +43,9 @@ where
         Err(e)
       }
       Some(Ok(print)) => {
+        #[cfg(target_family = "unix")]
+        let bytes = print.as_bytes();
+        #[cfg(target_family = "windows")]
         let bytes = print.as_encoded_bytes();
         s.1
           .write_all(bytes)
