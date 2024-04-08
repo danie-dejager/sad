@@ -21,6 +21,11 @@ use {
   },
 };
 
+#[cfg(target_family = "unix")]
+use std::os::unix::ffi::OsStringExt;
+#[cfg(target_family = "windows")]
+use std::os::windows::ffi::OsStringExt;
+
 #[derive(Debug)]
 pub enum RowIn {
   Entire(PathBuf),
@@ -131,12 +136,10 @@ async fn stream_patch(patches: &Path) -> impl Stream<Item = Result<RowIn, Die>> 
 fn u8_pathbuf(v8: Vec<u8>) -> PathBuf {
   #[cfg(target_family = "unix")]
   {
-    use std::os::unix::ffi::OsStringExt;
     PathBuf::from(OsString::from_vec(v8))
   }
   #[cfg(target_family = "windows")]
   {
-    use std::os::windows::ffi::OsStringExt;
     let mut buf = Vec::new();
     for chunk in v8.chunks_exact(2) {
       let c: [u8; 2] = chunk.try_into().expect("exact chunks");

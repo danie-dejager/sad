@@ -40,15 +40,7 @@ where
         Err(e)
       }
       Some(Ok(print)) => {
-        #[cfg(target_family = "unix")]
-        let bytes = {
-          use std::os::unix::ffi::OsStrExt;
-          print.as_bytes()
-        };
-        #[cfg(target_family = "windows")]
-        let tmp = print.to_string_lossy();
-        #[cfg(target_family = "windows")]
-        let bytes = tmp.as_bytes();
+        let bytes = print.as_encoded_bytes();
         s.1
           .write_all(bytes)
           .await
