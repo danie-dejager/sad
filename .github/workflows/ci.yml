@@ -10,7 +10,7 @@ on:
     - cron: "0 0 * * *" # daily
 
 jobs:
-  mypy:
+  lint:
     runs-on: ubuntu-latest
 
     steps:

@@ -66,7 +66,7 @@ pub struct Arguments {
   #[clap(short, long)]
   pub flags: Option<String>,
 
-  /// Colourizing program, disable = never, default = $GIT_PAGER
+  /// Colourizing program, disable = never, default = `$GIT_PAGER`
   ///
   /// Uses bash shell syntax for splitting
   #[clap(short, long)]
