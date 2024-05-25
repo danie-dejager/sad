@@ -131,20 +131,23 @@ async fn stream_patch(patches: &Path) -> impl Stream<Item = Result<RowIn, Die>> 
   Either::Right(stream.try_filter_map(|x| ready(Ok(x))))
 }
 
-#[allow(clippy::unnecessary_wraps)]
-fn u8_pathbuf(v8: Vec<u8>) -> Option<PathBuf> {
+#[allow(clippy::unnecessary_wraps, unused_variables)]
+fn u8_pathbuf(trim_cr: bool, v8: Vec<u8>) -> Option<PathBuf> {
   #[cfg(target_family = "unix")]
   {
     Some(PathBuf::from(OsString::from_vec(v8)))
   }
   #[cfg(target_family = "windows")]
   {
-    let buf = String::from_utf8(v8).ok()?;
+    let mut buf = String::from_utf8(v8).ok()?;
+    if trim_cr && buf.ends_with('\r') {
+      let _ = buf.pop();
+    }
     Some(PathBuf::from(OsString::from(buf)))
   }
 }
 
-fn stream_stdin(use_nul: bool) -> impl Stream<Item = Result<RowIn, Die>> {
+fn stream_stdin(use_nul: bool, trim_cr: bool) -> impl Stream<Item = Result<RowIn, Die>> {
   if io::stdin().is_terminal() {
     let err = Die::ArgumentError("/dev/stdin connected to tty".to_owned());
     return Either::Left(once(ready(Err(err))));
@@ -153,7 +156,7 @@ fn stream_stdin(use_nul: bool) -> impl Stream<Item = Result<RowIn, Die>> {
   let reader = BufReader::new(stdin()).split(delim);
   let seen = HashSet::new();
 
-  let stream = try_unfold((reader, seen), |mut s| async {
+  let stream = try_unfold((reader, seen), move |mut s| async move {
     let next = s
       .0
       .next_segment()
@@ -162,7 +165,7 @@ fn stream_stdin(use_nul: bool) -> impl Stream<Item = Result<RowIn, Die>> {
     match next {
       None => Ok(None),
       Some(buf) => {
-        if let Some(path) = u8_pathbuf(buf) {
+        if let Some(path) = u8_pathbuf(trim_cr, buf) {
           match canonicalize(&path).await {
             Err(e) if e.kind() == ErrorKind::NotFound => Ok(Some((None, s))),
             Err(e) => Err(Die::IO(path, e.kind())),
@@ -185,8 +188,9 @@ fn stream_stdin(use_nul: bool) -> impl Stream<Item = Result<RowIn, Die>> {
 }
 
 pub async fn stream_in(mode: &Mode, args: &Arguments) -> impl Stream<Item = Result<RowIn, Die>> {
+  let trim_cr = args.trim_cr.unwrap_or_default();
   match mode {
-    Mode::Initial => Either::Left(stream_stdin(args.read0)),
+    Mode::Initial => Either::Left(stream_stdin(args.read0, trim_cr)),
     Mode::Preview(path) | Mode::Patch(path) => Either::Right(stream_patch(path).await),
   }
 }

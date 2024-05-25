@@ -83,6 +83,12 @@ pub struct Arguments {
   /// ie. a higher {size} will leader to more changes grouped together
   #[clap(short, long)]
   pub unified: Option<usize>,
+
+  /// Trim '\r' from input filenames
+  ///
+  /// Windows only, default = true
+  #[clap(long)]
+  pub trim_cr: Option<bool>,
 }
 
 fn parse_fzf_mode(argv: &OsString) -> Option<Mode> {
@@ -100,15 +106,20 @@ fn parse_fzf_mode(argv: &OsString) -> Option<Mode> {
 
 pub fn parse_args() -> (Mode, Arguments) {
   let args = args_os().collect::<Vec<_>>();
-  match (
+  if let (Some("-c"), Some(mode), Some(arg_list)) = (
     args.get(1).and_then(|a| a.to_str()),
     args.get(2).and_then(parse_fzf_mode),
     var_os(Mode::ARGV).and_then(|a| a.into_string().ok()),
   ) {
-    (Some("-c"), Some(mode), Some(arg_list)) => {
-      (mode, Arguments::parse_from(arg_list.split('\x04')))
+    (mode, Arguments::parse_from(arg_list.split('\x04')))
+  } else {
+    #[allow(unused_mut)]
+    let mut arguments = Arguments::parse_from(args);
+    #[cfg(target_family = "windows")]
+    if arguments.trim_cr.is_none() {
+      arguments.trim_cr = Some(true);
     }
-    _ => (Mode::Initial, Arguments::parse_from(args)),
+    (Mode::Initial, arguments)
   }
 }
 

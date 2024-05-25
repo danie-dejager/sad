@@ -58,7 +58,7 @@ pub fn stream_fzf_proc(
     "--preview-window=70%:wrap".to_owned(),
     format!("--bind=enter:{execute}"),
     format!("--bind=double-click:{execute}"),
-    format!("--preview={}\x04{{+f}}", Mode::PREVIEW),
+    format!("--preview={}\x04{{f}}", Mode::PREVIEW),
   ];
   arguments.extend(args);
 
