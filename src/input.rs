@@ -36,7 +36,7 @@ struct DiffRow(PathBuf, DiffRange);
 fn p_row(row: &str) -> Result<DiffRow, Die> {
   let f = || Die::ArgumentError(String::new());
   let ff = |_| f();
-  let preg = "\n\n\n\n@@ -(\\d+),(\\d+) \\+(\\d+),(\\d+) @@$";
+  let preg = "\x04 @@ -(\\d+),(\\d+) \\+(\\d+),(\\d+) @@$";
   let re = Regex::new(preg).map_err(Die::RegexError)?;
   let captures = re.captures(row).ok_or_else(f)?;
 

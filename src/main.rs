@@ -99,6 +99,7 @@ fn main() -> impl Termination {
 
   match rt.block_on(run(threads)).err() {
     None => ExitCode::SUCCESS,
+    // TODO: 0xC000013Au32 for windows
     Some(Die::Interrupt) => ExitCode::from(130),
     Some(e) => {
       eprintln!("{}", Colour::Red.paint(format!("{e}")));

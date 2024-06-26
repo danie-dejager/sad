@@ -74,7 +74,7 @@ pub async fn displace(opts: &Options, input: RowIn) -> Result<OsString, Die> {
         for range in ranges {
           let repr = Colour::Red.paint(format!("{range}"));
           fzf_lines.push(&name);
-          let line = format!("\n\n\n\n{repr}\0");
+          let line = format!("\x04 {repr}\0");
           fzf_lines.push(&line);
         }
         fzf_lines
