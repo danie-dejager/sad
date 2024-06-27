@@ -1,5 +1,9 @@
 ## Good news
 
+v0.4.31
+
+- Bump version purely for CI
+
 v0.4.30
 
 - Fix display issue with new fzf ( no longer use `\n` as delimiter )
