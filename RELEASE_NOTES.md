@@ -1,5 +1,9 @@
 ## Good news
 
+v0.4.30
+
+- Fix display issue with new fzf ( no longer use `\n` as delimiter )
+
 v0.4.29
 
 - Revert multi-select preview, since it conflicts with incremental preview :(
