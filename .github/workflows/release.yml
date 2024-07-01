@@ -12,10 +12,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
 
       - name: Setup Rust
         uses: actions-rs/toolchain@v1
@@ -63,10 +63,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
 
       - name: Setup Rust
         uses: actions-rs/toolchain@v1
@@ -96,16 +96,19 @@ jobs:
           path: artifacts/${{ matrix.jobs.triple }}.deb
 
   release:
+    permissions:
+      contents: write
+
     needs:
       - build
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
 
       - name: Download Artifacts
         uses: actions/download-artifact@v3
@@ -115,6 +118,7 @@ jobs:
       - name: Create Release
         env:
           CI_TOKEN: ${{ secrets.CI_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |-
           make ci
