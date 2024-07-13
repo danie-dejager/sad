@@ -4,7 +4,6 @@ from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from hashlib import sha256
-from itertools import chain, repeat
 from os import environ, linesep, scandir
 from os.path import normcase
 from pathlib import Path

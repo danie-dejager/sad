@@ -9,10 +9,11 @@ use {
     collections::HashMap,
     env::{self, current_exe},
     ffi::OsString,
+    io::ErrorKind,
     path::PathBuf,
     process::Stdio,
   },
-  tokio::{io::ErrorKind, process::Command},
+  tokio::process::Command,
   which::which,
 };
 
