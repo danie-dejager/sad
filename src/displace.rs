@@ -7,7 +7,7 @@ use {
     udiff::{apply_patches, patches, pure_diffs, udiff},
   },
   ansi_term::Colour,
-  std::{borrow::ToOwned, ffi::OsString, path::PathBuf},
+  std::{borrow::ToOwned, ffi::OsString, path::PathBuf, sync::Arc},
   tokio::task::spawn_blocking,
 };
 
@@ -38,11 +38,11 @@ fn diff(opts: &Options, before: &[String]) -> Vec<String> {
     .collect::<Vec<_>>()
 }
 
-pub async fn displace(opts: &Options, input: RowIn) -> Result<OsString, Die> {
+pub async fn displace(opts: Arc<Options>, input: RowIn) -> Result<OsString, Die> {
   let path = input.path().clone();
   let slurped = slurp(&path).await?;
-  let before = slurped.content;
-  if before.len() == 0 {
+  let before = Arc::new(slurped.content);
+  if before.is_empty() {
     Ok(OsString::new())
   } else {
     let mut name = opts
@@ -53,12 +53,15 @@ pub async fn displace(opts: &Options, input: RowIn) -> Result<OsString, Die> {
       .as_os_str()
       .to_owned();
 
-    let after = diff(opts, &before);
+    let (b, o) = (before.clone(), opts.clone());
+    let after = spawn_blocking(move || diff(&o, &b)).await?;
 
     let print = match (&opts.action, input) {
-      (Action::Preview, RowIn::Entire(_)) => udiff(None, opts.unified, &name, &before, &after),
+      (Action::Preview, RowIn::Entire(_)) => {
+        spawn_blocking(move || udiff(None, opts.unified, &name, &before, &after)).await?
+      }
       (Action::Preview, RowIn::Piecewise(_, ranges)) => {
-        udiff(Some(&ranges), opts.unified, &name, &before, &after)
+        spawn_blocking(move || udiff(Some(&ranges), opts.unified, &name, &before, &after)).await?
       }
       (Action::Commit, RowIn::Entire(_)) => {
         spit(&path, &slurped.meta, after).await?;
@@ -66,15 +69,19 @@ pub async fn displace(opts: &Options, input: RowIn) -> Result<OsString, Die> {
         name
       }
       (Action::Commit, RowIn::Piecewise(_, ranges)) => {
-        let patches = patches(opts.unified, &before, &after);
-        let after = apply_patches(patches, &ranges, &before);
-        spit(&path, &slurped.meta, after).await?;
+        let applied = spawn_blocking(move || {
+          let patches = patches(opts.unified, &before, &after);
+          let applied = apply_patches(patches, &ranges, &before);
+          applied.iter().map(ToString::to_string).collect::<Vec<_>>()
+        })
+        .await?;
+        spit(&path, &slurped.meta, applied).await?;
         name.push("\n");
         name
       }
       (Action::FzfPreview(_, _), _) => {
-        let ranges = pure_diffs(opts.unified, &before, &after);
-        if ranges.len() == 0 {
+        let ranges = spawn_blocking(move || pure_diffs(opts.unified, &before, &after)).await?;
+        if ranges.is_empty() {
           OsString::new()
         } else {
           let mut fzf_lines = OsString::new();

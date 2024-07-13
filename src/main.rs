@@ -32,6 +32,7 @@ use {
     path::PathBuf,
     pin::pin,
     process::{ExitCode, Termination},
+    sync::Arc,
     thread::available_parallelism,
   },
   subprocess::{stream_into, stream_subproc},
@@ -80,10 +81,10 @@ async fn consume(stream: impl Stream<Item = Result<(), Die>> + Send) -> Result<(
 async fn run(threads: usize) -> Result<(), Die> {
   let (mode, args) = parse_args();
   let input_stream = stream_in(&mode, &args).await;
-  let opts = parse_opts(mode, args)?;
+  let opts = Arc::new(parse_opts(mode, args)?);
 
   let trans_stream = input_stream
-    .map_ok(|input| displace(&opts, input))
+    .map_ok(|input| displace(opts.clone(), input))
     .try_buffer_unordered(threads);
   let out_stream = stream_sink(&opts, trans_stream.boxed());
 
