@@ -14,21 +14,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v3
+      - uses: actions/setup-python@v5
 
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           default: true
           override: true
 
-      - name: Lint
-        run: |-
+      - run: |-
           make lint
 
   build:
@@ -65,35 +61,28 @@ jobs:
     runs-on: ${{ matrix.jobs.runner }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v3
+      - uses: actions/setup-python@v5
 
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           default: true
           override: true
 
-      - name: Deps
-        run: |-
+      - run: |-
           make deps
 
-      - name: Build
-        run: |-
+      - run: |-
           make release TRIPLE=${{ matrix.jobs.triple }}
 
-      - name: Upload Bin
-        uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.jobs.triple }}.zip
           path: artifacts/${{ matrix.jobs.triple }}.zip
 
-      - name: Upload Deb
-        uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.jobs.triple }}.deb
           path: artifacts/${{ matrix.jobs.triple }}.deb
@@ -114,7 +103,9 @@ jobs:
 
     steps:
       - name: Homebrew
-        run: brew install ms-jpq/sad/sad
+        run: |-
+          brew install ms-jpq/sad/sad
 
       - name: Confirm Install
-        run: brew list -1
+        run: |-
+          brew list -1
