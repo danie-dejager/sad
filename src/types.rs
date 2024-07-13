@@ -2,23 +2,24 @@ use {
   aho_corasick::BuildError,
   regex::Error as RegexError,
   std::{
-    clone::Clone,
     error::Error,
     fmt::{self, Display, Formatter},
     io::ErrorKind,
     path::PathBuf,
   },
+  tokio::task::JoinError,
 };
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub enum Die {
-  Eof,
-  Interrupt,
-  RegexError(RegexError),
-  BuildError(BuildError),
   ArgumentError(String),
-  IO(PathBuf, ErrorKind),
   BadExit(PathBuf, i32),
+  BuildError(BuildError),
+  Eof,
+  IO(PathBuf, ErrorKind),
+  Interrupt,
+  Join(JoinError),
+  RegexError(RegexError),
 }
 
 impl Error for Die {}
@@ -38,5 +39,11 @@ impl From<RegexError> for Die {
 impl From<BuildError> for Die {
   fn from(e: BuildError) -> Self {
     Self::BuildError(e)
+  }
+}
+
+impl From<JoinError> for Die {
+  fn from(e: JoinError) -> Self {
+    Self::Join(e)
   }
 }
