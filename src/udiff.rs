@@ -147,7 +147,7 @@ pub fn udiff(
       }
     };
 
-    ret.push(&format!("{range}\n"));
+    ret.push(format!("{range}\n"));
 
     for code in group {
       if code.tag == "equal" {
