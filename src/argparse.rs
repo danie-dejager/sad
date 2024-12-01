@@ -206,9 +206,9 @@ fn p_regex(pattern: &str, flags: Vec<String>) -> Result<Regex, Die> {
   Ok(re.build()?)
 }
 
-fn p_fzf(fzf: &Option<String>) -> Option<(PathBuf, Vec<String>)> {
+fn p_fzf(fzf: Option<&str>) -> Option<(PathBuf, Vec<String>)> {
   match (which("fzf"), stdout().is_terminal(), stderr().is_terminal()) {
-    (Ok(p), true, true) => match fzf.as_deref() {
+    (Ok(p), true, true) => match fzf {
       Some("never") => None,
       Some(val) => Some((p, split(val).unwrap_or_default())),
       None => Some((p, Vec::new())),
@@ -217,10 +217,10 @@ fn p_fzf(fzf: &Option<String>) -> Option<(PathBuf, Vec<String>)> {
   }
 }
 
-fn p_pager(pager: &Option<String>) -> Option<SubprocCommand> {
+fn p_pager(pager: Option<&str>) -> Option<SubprocCommand> {
   let norm = || which("delta").or_else(|_| which("diff-so-fancy")).ok();
 
-  let (prog, arguments) = match pager.as_deref() {
+  let (prog, arguments) = match pager {
     Some("never") => (None, Vec::new()),
     Some(val) => {
       let mut sh = split(val)
@@ -274,13 +274,13 @@ pub fn parse_opts(mode: Mode, args: Arguments) -> Result<Options, Die> {
     }
   };
 
-  let action = match (args.commit, mode, p_fzf(&args.fzf)) {
+  let action = match (args.commit, mode, p_fzf(args.fzf.as_deref())) {
     (true, _, _) | (_, Mode::Patch(_), _) => Action::Commit,
     (_, Mode::Initial, Some((bin, args))) => Action::FzfPreview(bin, args),
     _ => Action::Preview,
   };
 
-  let printer = p_pager(&args.pager).map_or(Printer::Stdout, Printer::Pager);
+  let printer = p_pager(args.pager.as_deref()).map_or(Printer::Stdout, Printer::Pager);
 
   Ok(Options {
     cwd: current_dir().ok(),
