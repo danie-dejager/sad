@@ -1,5 +1,13 @@
 ## Good news
 
+v0.4.32
+
+- It looks like in the newer versions of `fzf` the command that was used to "execute and exit" no longer works.
+
+  - A quick fix is to simply migrate to `fzf`'s new `become` command, which almost does the same thing.
+
+  - This is a breaking change for holder versions of `fzf` however, and users using `fzf` shipped with ubuntu 22 and below should stick with old version for now
+
 v0.4.31
 
 - Bump version purely for CI
