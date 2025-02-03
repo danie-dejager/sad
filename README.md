@@ -41,7 +41,8 @@ export GIT_PAGER='<highlighter-of-your-choice>'
 # ^ can be done in your bash/zsh/rc file.
 find "$FIND_ARGS" | sad '<pattern>' '<replacement>'
 ```
-Note: `--multi` is passed to fzf so you can select multiple files with `Shift+tab` 
+
+Note: `--multi` is passed to fzf so you can select multiple files with `Shift+tab`
 
 **without fzf**
 

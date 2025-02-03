@@ -50,7 +50,7 @@ pub fn stream_fzf_proc(
   args: Vec<String>,
   stream: impl Stream<Item = Result<OsString, Die>> + Unpin,
 ) -> impl Stream<Item = Result<(), Die>> {
-  let execute = format!("abort+execute:{}\x04{{+f}}", Mode::PATCH);
+  let execute = format!("become:{}\x04{{+f}}", Mode::PATCH);
   let mut arguments = vec![
     "--read0".to_owned(),
     "--print0".to_owned(),
