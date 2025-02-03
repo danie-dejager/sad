@@ -26,7 +26,7 @@ clobber: clean
 	rm -v -rf -- .venv/
 
 .venv/$(VENV)/pip:
-	python3 -m venv -- .venv
+	python -m venv -- .venv
 
 .venv/$(VENV)/mypy: .venv/$(VENV)/pip
 	'$<' install --upgrade --requirement requirements.txt -- mypy types-PyYAML types-toml types-Jinja2
@@ -43,16 +43,16 @@ clippy:
 lint: mypy clippy
 
 deps: .venv/$(VENV)/mypy
-	.venv/$(VENV)/python3 ./build.py deps
+	.venv/$(VENV)/python ./build.py deps
 
 build: lint test
-	.venv/$(VENV)/python3 ./build.py build
+	.venv/$(VENV)/python ./build.py build
 
 release: .venv/$(VENV)/mypy
-	.venv/$(VENV)/python3 ./build.py buildr -- "$$TRIPLE"
+	.venv/$(VENV)/python ./build.py buildr -- "$$TRIPLE"
 
 ci: .venv/$(VENV)/mypy
-	.venv/$(VENV)/python3 ./ci/release.py
+	.venv/$(VENV)/python ./ci/release.py
 
 test:
 	cargo test --locked
