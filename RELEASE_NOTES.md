@@ -6,7 +6,7 @@ v0.4.32
 
   - A quick fix is to simply migrate to `fzf`'s new `become` command, which almost does the same thing.
 
-  - This is a breaking change for holder versions of `fzf` however, and users using `fzf` shipped with ubuntu 22 and below should stick with old version for now
+  - This is a breaking change for older versions of `fzf` however, and users using `fzf` shipped with ubuntu 22 and below should stick with old version for now
 
 v0.4.31
 
