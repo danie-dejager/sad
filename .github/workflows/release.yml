@@ -7,10 +7,86 @@ on:
       - "*"
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: ./ci.yml
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ">= 0"
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+          override: true
+
+      - run: |-
+          make lint
+
+  build:
+    strategy:
+      matrix:
+        jobs:
+          - runner: ubuntu-latest
+            triple: aarch64-unknown-linux-gnu
+
+          - runner: ubuntu-latest
+            triple: aarch64-unknown-linux-musl
+
+          - runner: ubuntu-latest
+            triple: x86_64-pc-windows-gnu
+
+          - runner: ubuntu-latest
+            triple: x86_64-unknown-linux-gnu
+
+          - runner: ubuntu-latest
+            triple: x86_64-unknown-linux-musl
+
+          - runner: macos-latest
+            triple: aarch64-apple-darwin
+
+          - runner: macos-latest
+            triple: x86_64-apple-darwin
+
+          - runner: windows-latest
+            triple: aarch64-pc-windows-msvc
+
+          - runner: windows-latest
+            triple: x86_64-pc-windows-msvc
+
+    runs-on: ${{ matrix.jobs.runner }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ">= 0"
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+          override: true
+
+      - run: |-
+          make deps
+
+      - run: |-
+          make release TRIPLE=${{ matrix.jobs.triple }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.jobs.triple }}.zip
+          path: artifacts/${{ matrix.jobs.triple }}.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.jobs.triple }}.deb
+          path: artifacts/${{ matrix.jobs.triple }}.deb
 
   release:
     permissions:
