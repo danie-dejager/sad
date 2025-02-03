@@ -81,12 +81,12 @@ jobs:
       - run: |-
           make release TRIPLE=${{ matrix.jobs.triple }}
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.jobs.triple }}.zip
           path: artifacts/${{ matrix.jobs.triple }}.zip
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.jobs.triple }}.deb
           path: artifacts/${{ matrix.jobs.triple }}.deb
