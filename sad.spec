@@ -1,6 +1,6 @@
 Name:           sad
 Version:        0.4.32
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Space Age seD
 URL:            https://github.com/ms-jpq/sad
 License:        MIT
@@ -51,6 +51,7 @@ $HOME/.cargo/bin/cargo test --release --locked --all-features
 /usr/bin/%{name}
 
 %changelog
+* Sun Oct 26 2025 - Danie de Jager - 0.4.32-3
 * Mon Jun 16 2025 - Danie de Jager - 0.4.32-2
 * Tue Feb 4 2025 - Danie de Jager - 0.4.32-1
 * Sun December 8 2024 - Danie de Jager - 0.4.31-3
